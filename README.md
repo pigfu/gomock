@@ -1,0 +1,2 @@
+# gomock
+a mock tool
