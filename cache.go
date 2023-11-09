@@ -14,9 +14,21 @@ type cache struct {
 }
 
 var (
-	ignoreMockTagKeys = map[reflect.Kind]struct{}{
-		reflect.Slice:  {},
-		reflect.Struct: {},
+	baseTypes = map[reflect.Kind]bool{
+		reflect.Bool:    true,
+		reflect.Int:     true,
+		reflect.Int8:    true,
+		reflect.Int16:   true,
+		reflect.Int32:   true,
+		reflect.Int64:   true,
+		reflect.Uint:    true,
+		reflect.Uint8:   true,
+		reflect.Uint16:  true,
+		reflect.Uint32:  true,
+		reflect.Uint64:  true,
+		reflect.Float32: true,
+		reflect.Float64: true,
+		reflect.String:  true,
 	}
 	notSupportTypes = map[reflect.Kind]struct{}{
 		reflect.Array:         {},
@@ -24,6 +36,7 @@ var (
 		reflect.Chan:          {},
 		reflect.Func:          {},
 		reflect.Interface:     {},
+		reflect.Uintptr:       {},
 		reflect.UnsafePointer: {},
 		reflect.Complex64:     {},
 		reflect.Complex128:    {},

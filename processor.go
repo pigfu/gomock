@@ -121,7 +121,6 @@ func rangeString(fl FieldLevel) string {
 
 // mock integer. for int,int8,int64...
 func mockInteger(fl FieldLevel) (reflect.Value, error) {
-	fmt.Println(fl.GetKind(), fl.GetType())
 	val := generateInteger(fl)
 	switch fl.GetKind() {
 	case reflect.Int:

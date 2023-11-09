@@ -133,16 +133,17 @@ func (m *Mock) mockSliceValue(ctx context.Context, val reflect.Value, fl FieldLe
 }
 
 func (m *Mock) mockValue(val reflect.Value, fl FieldLevel) error {
-	//fmt.Println("setValue", fl.GetName())
 	if fl.GetMockFunc() == nil {
 		return nil
 	}
-	//fmt.Println("setValue2", fl.GetName(), fl.GetIndex())
 
 	rv, err := fl.GetMockFunc()(fl)
 	if err != nil {
 		return err
 	}
-	val.Set(rv.Convert(fl.GetType()))
+	if baseTypes[fl.GetKind()] && fl.GetKind().String() != fl.GetType().String() {
+		rv = rv.Convert(fl.GetType())
+	}
+	val.Set(rv)
 	return nil
 }
