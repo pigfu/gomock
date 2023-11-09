@@ -57,8 +57,7 @@ func TestMock(t *testing.T) {
 			StrVal: value,
 		}, nil
 	})
-	//var man *Man
-	man := &Hobby{}
+	man := &Man{}
 	err := mock.Struct(man)
 	if err != nil {
 		t.Error(err)

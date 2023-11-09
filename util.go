@@ -96,8 +96,8 @@ func maxFunc[T int | int64 | float64](a, b T) T {
 	return b
 }
 
-func mapToSlice[T string | struct{}](valueMap map[T]T, fn func(T, T) T) []T {
-	values := make([]T, 0, len(valueMap))
+func mapToSlice[K comparable, P, V any](valueMap map[K]V, fn func(K, V) P) []P {
+	values := make([]P, 0, len(valueMap))
 	for key, value := range valueMap {
 		values = append(values, fn(key, value))
 	}

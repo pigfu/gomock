@@ -145,7 +145,7 @@ func mockInteger(fl FieldLevel) (reflect.Value, error) {
 	case reflect.Uint64:
 		return int64ToUint64(fl, val), nil
 	}
-	return reflect.New(fl.GetType()), fmt.Errorf("not supportd the type %s", fl.GetKind())
+	return reflect.New(fl.GetType()), fmt.Errorf("not support the type %s", fl.GetKind())
 }
 
 func generateInteger(fl FieldLevel) int64 {
@@ -305,7 +305,7 @@ func mockDecimal(fl FieldLevel) (reflect.Value, error) {
 	case reflect.Float64:
 		return float64ToFloat64(fl, val), nil
 	}
-	return reflect.New(fl.GetType()), fmt.Errorf("not supportd the type %s", fl.GetKind())
+	return reflect.New(fl.GetType()), fmt.Errorf("not support the type %s", fl.GetKind())
 }
 func float64ToFloat64(fl FieldLevel, val float64) reflect.Value {
 	if fl.IsPtr() {
@@ -414,25 +414,23 @@ func mockAddress(fl FieldLevel) (reflect.Value, error) {
 	return reflect.ValueOf(result.String()), nil
 }
 func randProvince(provinceMap map[string]map[string]map[string]struct{}) string {
-	provinces := make([]string, 0, len(provinceMap))
-	for key := range provinceMap {
-		provinces = append(provinces, key)
-	}
+	provinces := mapToSlice(provinceMap, func(key string,
+		_ map[string]map[string]struct{}) string {
+		return key
+	})
 	return provinces[rand.Int63()%int64(len(provinces))]
 }
 
 func randCity(cityMap map[string]map[string]struct{}) string {
-	cities := make([]string, 0, len(cityMap))
-	for key := range cityMap {
-		cities = append(cities, key)
-	}
+	cities := mapToSlice(cityMap, func(key string, _ map[string]struct{}) string {
+		return key
+	})
 	return cities[rand.Int63()%int64(len(cities))]
 }
 func randCountry(countryMap map[string]struct{}) string {
-	countries := make([]string, 0, len(countryMap))
-	for key := range countryMap {
-		countries = append(countries, key)
-	}
+	countries := mapToSlice(countryMap, func(key string, _ struct{}) string {
+		return key
+	})
 	return countries[rand.Int63()%int64(len(countries))]
 }
 
