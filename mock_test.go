@@ -35,6 +35,8 @@ type Man struct {
 	Address     string   `json:"address,omitempty"  mock:"key=addr,addr=city county"`
 	CreateTime  int64    `json:"create_time,omitempty"  mock:"key=time,time=ts_ms"`
 	UpdateTime  string   `json:"update_time,omitempty"  mock:"key=time,time=2006-01-02 15:04:05"`
+	RegDecimal  float64  `json:"reg_decimal,omitempty"  mock:"key=decimal,reg=[1-9]{3}\\.\\d{1,5}"`
+	RegName     string   `json:"reg_name,omitempty"  mock:"key=string,reg=[\u4e00-\u9fa5]{6,}"`
 }
 
 func TestMock(t *testing.T) {

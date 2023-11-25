@@ -12,25 +12,29 @@ const (
 	defaultSeparator    = ","
 	mockTagSeparator    = "="
 	mockTagValSeparator = " "
+	mockTagKeyPattern   = ",[a-z_]+=|,into"
+	maxTagKey           = 99
 )
 
 type Mock struct {
 	*sync.Mutex
-	tag         string //mock tag mark
-	separator   string
-	cache       *cache
-	mockFactory map[string]MockFunc
-	tagFactory  map[string]TagFunc
+	tag          string //mock tag mark
+	separator    string
+	tagSeparator string
+	cache        *cache
+	mockFactory  map[string]MockFunc
+	tagFactory   map[string]TagFunc
 }
 
 func New() *Mock {
 	mock := &Mock{
-		Mutex:       &sync.Mutex{},
-		tag:         defaultTag,
-		separator:   defaultSeparator,
-		cache:       newCache(),
-		mockFactory: make(map[string]MockFunc),
-		tagFactory:  make(map[string]TagFunc),
+		Mutex:        &sync.Mutex{},
+		tag:          defaultTag,
+		separator:    defaultSeparator,
+		tagSeparator: mockTagSeparator,
+		cache:        newCache(),
+		mockFactory:  make(map[string]MockFunc),
+		tagFactory:   make(map[string]TagFunc),
 	}
 	for key, val := range mockFactory {
 		mock.mockFactory[key] = val

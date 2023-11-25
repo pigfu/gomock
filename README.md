@@ -10,6 +10,7 @@ go get github.com/pigfu/gomock
 3. for front-end developers,you can quickly build mock services for front-end API debugging, interrupting the development mode of front-end waiting for back-end API.
 4. for back-end developers, you can quickly build parameters for API debugging.
 ## mock function
+function key value must match the regular expression '[a-z_]+'  .
 
 | Function     | Description                           |
 |--------------|---------------------------------------|
@@ -22,6 +23,7 @@ go get github.com/pigfu/gomock
 | time         | mock time                             |
 
 ## mock tag
+tag key value must match the regular expression '[a-z_]+'  .
 
 | Tag     | Description                                                                                                                                         |
 |---------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -38,6 +40,7 @@ go get github.com/pigfu/gomock
 | -       | skip the field                                                                                                                                      |
 | addr    | only support addr mock function, any one or any combination of optional province city county                                                        |
 | time    | only support time mock function, supports timestamps at the second (ts_s) and millisecond (ts_ms) level or any time format (eg:2006/01/02 15:04:05) |
+| reg     | for integer, decimal, string, generate content based on regular expression                                                                          |
 
 ## example
 
@@ -73,6 +76,8 @@ type Man struct {
 	Address     string   `json:"address,omitempty"  mock:"key=addr,addr=city county"`
 	CreateTime  int64    `json:"create_time,omitempty"  mock:"key=time,time=ts_ms"`
 	UpdateTime  string   `json:"update_time,omitempty"  mock:"key=time,time=2006-01-02 15:04:05"`
+	RegDecimal  float64  `json:"reg_decimal,omitempty"  mock:"key=decimal,reg=[1-9]{3}\\.\\d{1,5}"`
+	RegName     string   `json:"reg_name,omitempty"  mock:"key=string,reg=[\u4e00-\u9fa5]{6,}"`
 }
 
 func main() {
@@ -89,7 +94,7 @@ func main() {
 ```
 You will get the following:
 ```json
-{"id":5,"ids":[33,25],"name":"X5K8LD3F","age":49,"hobby":{"id":5,"ht":1,"name":"8fzH9yJQ","pros":["5XDTkS","mQLJ","G9T0"]},"hobbies":[{"id":5,"ht":2,"name":"q97NuPswO0I6VZ","pros":["MGbx","ZEi7L4","xOwM67","zpl","LYzBo0"]}],"decimal":0.159,"mobile_phone":"18909537318","email":"08A7z7PMZS@hotmail.com","address":"天津市 西青区","create_time":1699695881544,"update_time":"2023-11-11 17:44:41"}
+{"id":5,"ids":[33,25],"name":"X5K8LD3F","age":49,"hobby":{"id":5,"ht":1,"name":"8fzH9yJQ","pros":["5XDTkS","mQLJ","G9T0"]},"hobbies":[{"id":5,"ht":2,"name":"q97NuPswO0I6VZ","pros":["MGbx","ZEi7L4","xOwM67","zpl","LYzBo0"]}],"decimal":0.159,"mobile_phone":"18909537318","email":"08A7z7PMZS@hotmail.com","address":"天津市 西青区","create_time":1699695881544,"update_time":"2023-11-11 17:44:41","reg_decimal":727.5378,"reg_name":"泗傻貕贵耎鎦鶓櫫"}
 ```
 Of course, you can customize the mock method what you need
 ```go

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 	"sync"
 )
@@ -121,6 +122,7 @@ func (mf *mockField) GetTags() TagLevelMap {
 func (mf *mockField) GetMockFunc() MockFunc {
 	return mf.mf
 }
+
 func (m *Mock) Indirect(rt reflect.Type) (reflect.Type, bool) {
 	if rt.Kind() == reflect.Pointer {
 		return rt.Elem(), true
@@ -254,7 +256,7 @@ func (m *Mock) genMockTag(mf *mockField) error {
 		err    error
 	)
 	for i, tag := range mf.tempTags {
-		values = strings.SplitN(tag, mockTagSeparator, 2)
+		values = strings.SplitN(tag, m.tagSeparator, 2)
 		key, value = values[0], ""
 		if len(values) > 1 {
 			value = values[1]
@@ -321,7 +323,7 @@ func (m *Mock) parseBaseTag(mf *mockField) error {
 	return m.genMockFunc(mf)
 }
 func (m *Mock) parseTag(ctx context.Context, mf *mockField, tag reflect.StructTag) error {
-	mf.tempTags = strings.Split(tag.Get(m.tag), m.separator)
+	mf.tempTags = m.splitTag(tag.Get(m.tag))
 	switch mf.rk {
 	case reflect.Slice:
 		return m.parseSliceTag(ctx, mf)
@@ -330,4 +332,19 @@ func (m *Mock) parseTag(ctx context.Context, mf *mockField, tag reflect.StructTa
 	default:
 		return m.parseBaseTag(mf)
 	}
+}
+
+func (m *Mock) splitTag(tag string) []string {
+	if tag == "" {
+		return nil
+	}
+	var (
+		reg      = regexp.MustCompile(mockTagKeyPattern)
+		findOut  = reg.FindAllString(tag, maxTagKey)
+		splitOut = reg.Split(tag, maxTagKey)
+	)
+	for i := 1; i < len(splitOut); i++ {
+		splitOut[i] = findOut[i-1][1:] + splitOut[i]
+	}
+	return splitOut
 }

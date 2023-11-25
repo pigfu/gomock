@@ -134,6 +134,7 @@ const (
 	MockSkip    = "-"
 	MockAddress = "addr"
 	MockTime    = "time"
+	MockRegExp  = "reg"
 )
 
 var (
@@ -150,6 +151,7 @@ var (
 		MockWeights: WeightsFunc,
 		MockAddress: AddressFunc,
 		MockTime:    SimpleFunc,
+		MockRegExp:  SimpleFunc,
 	}
 )
 

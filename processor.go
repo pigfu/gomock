@@ -3,6 +3,7 @@ package gomock
 import (
 	"errors"
 	"fmt"
+	"github.com/pigfu/gomock/regen"
 	"math"
 	"math/rand"
 	"reflect"
@@ -79,23 +80,29 @@ func mockString(fl FieldLevel) (reflect.Value, error) {
 	if fl.GetKind() != reflect.String {
 		return reflect.New(fl.GetType()), errors.New("only support the type string")
 	}
-	val := generateString(fl)
+	val, err := generateString(fl)
+	if err != nil {
+		return reflect.Value{}, err
+	}
 	if fl.IsPtr() {
 		return reflect.ValueOf(&val), nil
 	}
 	return reflect.ValueOf(val), nil
 }
 
-func generateString(fl FieldLevel) string {
+func generateString(fl FieldLevel) (string, error) {
 	tm := fl.GetTags()
 	eqVal := tm.Key(MockEqual).GetStr()
 	if eqVal != "" {
-		return eqVal
+		return eqVal, nil
 	}
 	if tm.Key(MockOptions).Exists() {
-		return selectOne(fl, tm.Key(MockOptions).GetStrSet())
+		return selectOne(fl, tm.Key(MockOptions).GetStrSet()), nil
 	}
-	return rangeString(fl)
+	if tm.Key(MockRegExp).Exists() {
+		return regen.Generate(tm.Key(MockRegExp).GetStr())
+	}
+	return rangeString(fl), nil
 }
 
 func rangeString(fl FieldLevel) string {
@@ -121,7 +128,10 @@ func rangeString(fl FieldLevel) string {
 
 // mock integer. for int,int8,int64...
 func mockInteger(fl FieldLevel) (reflect.Value, error) {
-	val := generateInteger(fl)
+	val, err := generateInteger(fl)
+	if err != nil {
+		return reflect.Value{}, err
+	}
 	switch fl.GetKind() {
 	case reflect.Int:
 		return int64ToInt(fl, val), nil
@@ -147,15 +157,26 @@ func mockInteger(fl FieldLevel) (reflect.Value, error) {
 	return reflect.New(fl.GetType()), fmt.Errorf("not support the type %s", fl.GetKind())
 }
 
-func generateInteger(fl FieldLevel) int64 {
+func generateInteger(fl FieldLevel) (int64, error) {
 	tm := fl.GetTags()
 	if tm.Key(MockEqual).Exists() {
-		return tm.Key(MockEqual).GetInt64()
+		return tm.Key(MockEqual).GetInt64(), nil
 	}
 	if tm.Key(MockOptions).Exists() {
-		return selectOne(fl, tm.Key(MockOptions).GetInt64Set())
+		return selectOne(fl, tm.Key(MockOptions).GetInt64Set()), nil
 	}
-	return rangeInteger(fl)
+	if tm.Key(MockRegExp).Exists() {
+		return regenInteger(tm.Key(MockRegExp).GetStr())
+	}
+	return rangeInteger(fl), nil
+}
+
+func regenInteger(pattern string) (int64, error) {
+	str, err := regen.Generate(pattern)
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseInt(str, 10, 64)
 }
 
 func rangeInteger(fl FieldLevel) int64 {
@@ -297,7 +318,10 @@ func sumWeights(weights []int64, number int) int64 {
 
 // mock decimal. for float32,float64
 func mockDecimal(fl FieldLevel) (reflect.Value, error) {
-	val := generateDecimal(fl)
+	val, err := generateDecimal(fl)
+	if err != nil {
+		return reflect.Value{}, err
+	}
 	switch fl.GetKind() {
 	case reflect.Float32:
 		return float64ToFloat32(fl, val), nil
@@ -319,15 +343,27 @@ func float64ToFloat32(fl FieldLevel, val float64) reflect.Value {
 	}
 	return reflect.ValueOf(nv)
 }
-func generateDecimal(fl FieldLevel) float64 {
+func generateDecimal(fl FieldLevel) (float64, error) {
 	tm := fl.GetTags()
 	if tm.Key(MockEqual).Exists() {
-		return tm.Key(MockEqual).GetFloat64()
+		return tm.Key(MockEqual).GetFloat64(), nil
 	}
 	if tm.Key(MockOptions).Exists() {
-		return selectOne(fl, tm.Key(MockOptions).GetFloat64Set())
+		return selectOne(fl, tm.Key(MockOptions).GetFloat64Set()), nil
 	}
-	return rangeDecimal(fl)
+	if tm.Key(MockRegExp).Exists() {
+		return regenDecimal(tm.Key(MockRegExp).GetStr())
+	}
+	return rangeDecimal(fl), nil
+}
+
+func regenDecimal(pattern string) (float64, error) {
+	str, err := regen.Generate(pattern)
+	if err != nil {
+		return 0, err
+	}
+	fmt.Println(str)
+	return strconv.ParseFloat(str, 64)
 }
 
 func rangeDecimal(fl FieldLevel) float64 {
