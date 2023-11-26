@@ -28,16 +28,15 @@ tag key value must match the regular expression '[a-z_]+'  .
 | Tag     | Description                                                                                                                                         |
 |---------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | key     | appoint mock function                                                                                                                               |
-| eq      | for integer, decimal, string, eq will ensure that the value is equal to the parameter given. for slice, it will ensure the length.                  |
-| lt      | for integer, decimal, lt will ensure the maximum value.  for string, slice, it will ensure the maximum length.                                      |
-| lte     | for integer, decimal, lt will ensure the maximum value.  for string, slice, it will ensure the maximum length.                                      |
-| gt      | for integer, decimal, lt will ensure the minimum value.  for string, slice, it will ensure the minimum length.                                      |
-| gte     | for integer, decimal, lt will ensure the minimum value.  for string, slice, it will ensure the minimum length.                                      |
+| eq      | for integer, decimal, string, eq will ensure that the value is equal to the parameter given. for slice, it will ensure the length                   |
+| lt      | for integer, decimal, lt will ensure the maximum value.  for string, slice, it will ensure the maximum length                                       |
+| lte     | for integer, decimal, lt will ensure the maximum value.  for string, slice, it will ensure the maximum length                                       |
+| gt      | for integer, decimal, lt will ensure the minimum value.  for string, slice, it will ensure the minimum length                                       |
+| gte     | for integer, decimal, lt will ensure the minimum value.  for string, slice, it will ensure the minimum length                                       |
 | options | specify optional data, like options=2 5 8                                                                                                           |
-| weights | specify the weight of optional data, default weights=1 1 1                                                                                          |
-| time    |                                                                                                                                                     |
-| into    | appoint to mock struct or slice field,previous modifications to slice, subsequent modifications to internal fields of slice                         |
-| -       | skip the field                                                                                                                                      |
+| weights | specify the weight of optional data, default weights=1 1 1                                                                                          | 
+| into    | appoint to mock struct or slice field,previous modifications to slice, subsequent modifications to internal fields of slice,eg: into=1              |
+| skip    | skip the field,eg: skip=1                                                                                                                           |
 | addr    | only support addr mock function, any one or any combination of optional province city county                                                        |
 | time    | only support time mock function, supports timestamps at the second (ts_s) and millisecond (ts_ms) level or any time format (eg:2006/01/02 15:04:05) |
 | reg     | for integer, decimal, string, generate content based on regular expression                                                                          |
@@ -59,16 +58,16 @@ type Hobby struct {
 	Id   int64     `json:"id" mock:"key=integer,eq=5"`
 	HT   HobbyType `json:"ht"  mock:"key=integer,options=1 2 3"`
 	Name string    `json:"name"  mock:"key=string,gte=4,lte=23"`
-	Pros []string  `json:"pros" mock:"gte=1,lte=5,into,key=string,gte=3,lte=6"`
+	Pros []string  `json:"pros" mock:"gte=1,lte=5,into=1,key=string,gte=3,lte=6"`
 }
 
 type Man struct {
 	Id          int64    `json:"id" mock:"key=integer,eq=5"`
-	Ids         []int64  `json:"ids" mock:"eq=2,into,key=integer,gte=23,lte=55"`
+	Ids         []int64  `json:"ids" mock:"eq=2,into=1,key=integer,gte=23,lte=55"`
 	Name        string   `json:"name"  mock:"key=string,gte=6,lte=10"`
 	Age         *int8    `json:"age" mock:"key=integer,gte=23"`
-	Hobby       *Hobby   `json:"hobby,omitempty" mock:"into"`
-	Hobbies     []*Hobby `json:"hobbies,omitempty"  mock:"eq=1,into"`
+	Hobby       *Hobby   `json:"hobby,omitempty" mock:"into=1"`
+	Hobbies     []*Hobby `json:"hobbies,omitempty"  mock:"eq=1,into=1"`
 	Option      int32    `json:"option,omitempty"  mock:"key=integer,options=2 3 4 5,weights=10 5 2 2"`
 	Decimal     float64  `json:"decimal,omitempty"  mock:"key=decimal,gte=-23.235,lte=5.580"`
 	MobilePhone string   `json:"mobile_phone,omitempty"  mock:"key=mobile_phone"`

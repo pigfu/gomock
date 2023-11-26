@@ -19,15 +19,15 @@ type Hobby struct {
 	Id   int64     `json:"id" mock:"key=integer,eq=5"`
 	HT   HobbyType `json:"ht"  mock:"key=integer,options=1 2 3"`
 	Name string    `json:"name"  mock:"key=string,gte=4,lte=23"`
-	Pros []string  `json:"pros" mock:"gte=1,lte=5,into,key=string,gte=3,lte=6"`
+	Pros []string  `json:"pros" mock:"gte=1,lte=5,into=1,key=string,gte=3,lte=6"`
 }
 type Man struct {
 	Id          int64    `json:"id" mock:"key=integer,eq=5"`
-	Ids         []int64  `json:"ids" mock:"eq=2,into,key=integer,gte=23,lte=55"`
+	Ids         []int64  `json:"ids" mock:"eq=2,into=1,key=integer,gte=23,lte=55"`
 	Name        string   `json:"name" mock:"key=chinese,chinese_tag=李明"`
 	Age         *int8    `json:"age" mock:"key=integer,gte=23"`
-	Hobby       *Hobby   `json:"hobby,omitempty" mock:"into"`
-	Hobbies     []*Hobby `json:"hobbies,omitempty"  mock:"eq=1,into"`
+	Hobby       *Hobby   `json:"hobby,omitempty" mock:"into=1"`
+	Hobbies     []*Hobby `json:"hobbies,omitempty"  mock:"eq=1,into=1"`
 	Option      int32    `json:"option,omitempty"  mock:"key=integer,options=2 3 4 5,weights=10 5 2 2"`
 	Decimal     float64  `json:"decimal,omitempty"  mock:"key=decimal,gte=-23.235,lte=5.580"`
 	MobilePhone string   `json:"mobile_phone,omitempty"  mock:"key=mobile_phone"`

@@ -12,7 +12,7 @@ const (
 	defaultSeparator    = ","
 	mockTagSeparator    = "="
 	mockTagValSeparator = " "
-	mockTagKeyPattern   = ",[a-z_]+=|,into"
+	mockTagKeyPattern   = ",[a-z_]+="
 	maxTagKey           = 99
 )
 
