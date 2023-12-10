@@ -3,6 +3,7 @@ package gomock
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"sync"
 )
@@ -94,8 +95,11 @@ func (m *Mock) mockStructValue(ctx context.Context, val reflect.Value, fl FieldL
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
+	err = m.mockValue(val, fl)
+	if err != nil {
+		return
+	}
 	if fl.IsPtr() {
-		_ = m.mockValue(val, fl)
 		val = val.Elem()
 	}
 	for _, field := range fl.GetChildren() {
@@ -113,15 +117,15 @@ func (m *Mock) mockStructValue(ctx context.Context, val reflect.Value, fl FieldL
 	}
 	return
 }
-func (m *Mock) mockSliceValue(ctx context.Context, val reflect.Value, fl FieldLevel) error {
-	_ = m.mockValue(val, fl)
-	if len(fl.GetChildren()) == 0 { //not into
-		return nil
+func (m *Mock) mockSliceValue(ctx context.Context, val reflect.Value, fl FieldLevel) (err error) {
+	err = m.mockValue(val, fl)
+	if err != nil {
+		return
 	}
-	var (
-		err error
-		rt  reflect.Type
-	)
+	if len(fl.GetChildren()) == 0 { //not into
+		return
+	}
+	var rt reflect.Type
 	for i := 0; i < val.Len(); i++ {
 		rt, _ = m.Indirect(val.Index(i).Type())
 		if rt.Kind() == reflect.Struct {
@@ -130,24 +134,32 @@ func (m *Mock) mockSliceValue(ctx context.Context, val reflect.Value, fl FieldLe
 			err = m.mockValue(val.Index(i), fl.GetChildren()[0])
 		}
 		if err != nil {
-			return err
+			return
 		}
 	}
-	return nil
+	return
 }
 
-func (m *Mock) mockValue(val reflect.Value, fl FieldLevel) error {
+func (m *Mock) mockValue(val reflect.Value, fl FieldLevel) (err error) {
 	if fl.GetMockFunc() == nil {
-		return nil
+		return
 	}
-
-	rv, err := fl.GetMockFunc()(fl)
+	defer func() {
+		e := recover()
+		if e == nil {
+			return
+		}
+		err = fmt.Errorf("field:%s,err:%v", fl.GetAlias(), e)
+	}()
+	var rv reflect.Value
+	rv, err = fl.GetMockFunc()(fl)
 	if err != nil {
-		return err
+		return
 	}
 	if baseTypes[fl.GetKind()] && fl.GetKind().String() != fl.GetType().String() {
 		rv = rv.Convert(fl.GetType())
 	}
+
 	val.Set(rv)
-	return nil
+	return
 }

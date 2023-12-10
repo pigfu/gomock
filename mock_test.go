@@ -23,18 +23,18 @@ type Hobby struct {
 }
 type Man struct {
 	Id          int64    `json:"id" mock:"key=integer,eq=5"`
-	Ids         []int64  `json:"ids" mock:"eq=2,into=1,key=integer,gte=23,lte=55"`
+	Ids         []int64  `json:"ids" mock:"key=ids"`
 	Name        string   `json:"name" mock:"key=chinese,chinese_tag=李明"`
 	Age         *int8    `json:"age" mock:"key=integer,gte=23"`
-	Hobby       *Hobby   `json:"hobby,omitempty" mock:"into=1"`
+	Hobby       *Hobby   `json:"hobby,omitempty" mock:"key=hobby"`
 	Hobbies     []*Hobby `json:"hobbies,omitempty"  mock:"eq=1,into=1"`
 	Option      int32    `json:"option,omitempty"  mock:"key=integer,options=2 3 4 5,weights=10 5 2 2"`
 	Decimal     float64  `json:"decimal,omitempty"  mock:"key=decimal,gte=-23.235,lte=5.580"`
-	MobilePhone string   `json:"mobile_phone,omitempty"  mock:"key=mobile_phone"`
-	Email       string   `json:"email,omitempty"  mock:"key=email"`
-	Address     string   `json:"address,omitempty"  mock:"key=addr,addr=city county"`
-	CreateTime  int64    `json:"create_time,omitempty"  mock:"key=time,time=ts_ms"`
-	UpdateTime  string   `json:"update_time,omitempty"  mock:"key=time,time=2006-01-02 15:04:05"`
+	MobilePhone *string  `json:"mobile_phone,omitempty"  mock:"key=mobile_phone"`
+	Email       *string  `json:"email,omitempty"  mock:"key=email"`
+	Address     *string  `json:"address,omitempty"  mock:"key=addr,addr=city county"`
+	CreateTime  *int64   `json:"create_time,omitempty"  mock:"key=time,time=ts_ms"`
+	UpdateTime  *string  `json:"update_time,omitempty"  mock:"key=time,time=2006-01-02 15:04:05"`
 	RegDecimal  float64  `json:"reg_decimal,omitempty"  mock:"key=decimal,reg=[1-9]{3}\\.\\d{1,5}"`
 	RegName     string   `json:"reg_name,omitempty"  mock:"key=string,reg=[\u4e00-\u9fa5]{6,}"`
 }
@@ -59,6 +59,29 @@ func TestMock(t *testing.T) {
 			StrVal: value,
 		}, nil
 	})
+
+	mock.RegisterMock("hobby", func(fl FieldLevel) (reflect.Value, error) {
+		if fl.GetKind() != reflect.Struct {
+			return reflect.New(fl.GetType()), errors.New("only support the type struct")
+		}
+		hobby := Hobby{Id: 555, Name: "test hobby"}
+		if fl.IsPtr() {
+			return reflect.ValueOf(&hobby), nil
+		}
+		return reflect.ValueOf(hobby), nil
+	})
+
+	mock.RegisterMock("ids", func(fl FieldLevel) (reflect.Value, error) {
+		if fl.GetKind() != reflect.Slice {
+			return reflect.Value{}, errors.New("only support the type slice")
+		}
+		ids := []int64{101, 201, 301, 999}
+		if fl.IsPtr() {
+			return reflect.ValueOf(&ids), nil
+		}
+		return reflect.ValueOf(ids), nil
+	})
+
 	man := &Man{}
 	err := mock.Struct(man)
 	if err != nil {

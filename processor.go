@@ -362,7 +362,6 @@ func regenDecimal(pattern string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	fmt.Println(str)
 	return strconv.ParseFloat(str, 64)
 }
 
@@ -403,7 +402,11 @@ func mockMobilePhone(fl FieldLevel) (reflect.Value, error) {
 	for i := 0; i < mobilePhoneLen-len(prefix); i++ {
 		phone.WriteString(strconv.Itoa(rand.Intn(10)))
 	}
-	return reflect.ValueOf(phone.String()), nil
+	phoneStr := phone.String()
+	if fl.IsPtr() {
+		return reflect.ValueOf(&phoneStr), nil
+	}
+	return reflect.ValueOf(phoneStr), nil
 }
 func mockEmail(fl FieldLevel) (reflect.Value, error) {
 	if fl.GetKind() != reflect.String {
@@ -417,7 +420,11 @@ func mockEmail(fl FieldLevel) (reflect.Value, error) {
 		email.WriteByte(letters[rand.Int63()%int64(len(letters))])
 	}
 	email.WriteString(postfix)
-	return reflect.ValueOf(email.String()), nil
+	emailStr := email.String()
+	if fl.IsPtr() {
+		return reflect.ValueOf(&emailStr), nil
+	}
+	return reflect.ValueOf(emailStr), nil
 }
 
 func mockAddress(fl FieldLevel) (reflect.Value, error) {
@@ -446,7 +453,11 @@ func mockAddress(fl FieldLevel) (reflect.Value, error) {
 			result.WriteString(countyVal)
 		}
 	}
-	return reflect.ValueOf(result.String()), nil
+	addrStr := result.String()
+	if fl.IsPtr() {
+		return reflect.ValueOf(&addrStr), nil
+	}
+	return reflect.ValueOf(addrStr), nil
 }
 func randProvince(provinceMap map[string]map[string]map[string]struct{}) string {
 	provinces := mapToSlice(provinceMap, func(key string,
@@ -479,19 +490,27 @@ func mockTime(fl FieldLevel) (reflect.Value, error) {
 	case reflect.String:
 		return genTimeFormat(fl)
 	}
-	return reflect.ValueOf(fl.GetType()), fmt.Errorf("not support the type %s", fl.GetKind())
+	return reflect.Value{}, fmt.Errorf("not support the type %s", fl.GetKind())
 }
 func genTimestamp(fl FieldLevel) (reflect.Value, error) {
 	mt := fl.GetTags().Key(MockTime).GetStr()
+	value := int64(0)
 	if mt == timestampSecond {
-		return reflect.ValueOf(time.Now().Unix()), nil
+		value = time.Now().Unix()
 	}
 	if mt == timestampMs {
-		return reflect.ValueOf(time.Now().UnixMilli()), nil
+		value = time.Now().UnixMilli()
 	}
-	return reflect.ValueOf(int64(0)), fmt.Errorf("not support the type %s", fl.GetKind())
+	if fl.IsPtr() {
+		return reflect.ValueOf(&value), nil
+	}
+	return reflect.ValueOf(value), nil
 }
 func genTimeFormat(fl FieldLevel) (reflect.Value, error) {
 	mt := fl.GetTags().Key(MockTime).GetStr()
-	return reflect.ValueOf(time.Now().Format(mt)), nil
+	value := time.Now().Format(mt)
+	if fl.IsPtr() {
+		return reflect.ValueOf(&value), nil
+	}
+	return reflect.ValueOf(value), nil
 }

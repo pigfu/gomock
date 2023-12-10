@@ -77,6 +77,7 @@ type mockField struct {
 	intoTags []string //into slice
 
 	name     string       //the field name
+	alias    string       //the field alias
 	tags     TagLevelMap  //map[string]*mockTag
 	parent   FieldLevel   //*mockField
 	children []FieldLevel //[]*mockField
@@ -89,6 +90,7 @@ type FieldLevel interface {
 	GetKind() reflect.Kind
 	IsPtr() bool
 	GetName() string
+	GetAlias() string
 	GetParent() FieldLevel
 	GetChildren() []FieldLevel
 	GetTags() TagLevelMap
@@ -109,6 +111,9 @@ func (mf *mockField) IsPtr() bool {
 }
 func (mf *mockField) GetName() string {
 	return mf.name
+}
+func (mf *mockField) GetAlias() string {
+	return mf.alias
 }
 func (mf *mockField) GetParent() FieldLevel {
 	return mf.parent
@@ -149,15 +154,15 @@ func (m *Mock) genCache(ctx context.Context, rv reflect.Value) (FieldLevel, erro
 	m.cache.set(rt, mf)
 	return mf, nil
 }
-func (m *Mock) contactName(mf *mockField, name string) {
+func (m *Mock) contactAlias(mf *mockField, alias string) {
 	filler, separator := "", ""
 	if mf.parent.GetKind() == reflect.Slice {
 		filler = ".0"
 	}
-	if mf.parent.GetName() != "" && name != "" {
+	if mf.parent.GetAlias() != "" && alias != "" {
 		separator = "."
 	}
-	mf.name = mf.parent.GetName() + filler + separator + name
+	mf.alias = mf.parent.GetAlias() + filler + separator + alias
 }
 func (m *Mock) parseStruct(ctx context.Context, mf *mockField, rt reflect.Type) error {
 	if ctx.Err() != nil {
@@ -183,13 +188,14 @@ func (m *Mock) parseStructField(ctx context.Context, parent *mockField, index in
 		index:  index,
 		tags:   make(TagLevelMap),
 		parent: parent,
+		name:   rs.Name,
 	}
 	mf.rt, mf.isPtr = m.Indirect(rs.Type)
 	mf.rk = mf.rt.Kind()
 	if _, ok := notSupportTypes[mf.rk]; ok {
 		return fmt.Errorf("not support the kind:%s", mf.rk.String())
 	}
-	m.contactName(mf, rs.Name)
+	m.contactAlias(mf, rs.Name)
 	err := m.parseTag(ctx, mf, rs.Tag)
 	if err == nil {
 		parent.children = append(parent.children, mf)
@@ -210,7 +216,7 @@ func (m *Mock) parseIntoBase(parent *mockField, rt reflect.Type) error {
 	if _, ok := notSupportTypes[mf.rk]; ok {
 		return fmt.Errorf("not support the kind:%s", mf.rk.String())
 	}
-	m.contactName(mf, "")
+	m.contactAlias(mf, "")
 	err := m.parseBaseTag(mf)
 	if err == nil {
 		parent.children = append(parent.children, mf)
@@ -222,6 +228,7 @@ func (m *Mock) parseIntoStruct(ctx context.Context, parent *mockField, rt reflec
 		tags:     make(map[string]TagLevel),
 		parent:   parent,
 		tempTags: parent.intoTags,
+		name:     rt.Name(),
 	}
 	mf.rt, mf.isPtr = m.Indirect(rt)
 	mf.rk = mf.rt.Kind()
@@ -231,7 +238,7 @@ func (m *Mock) parseIntoStruct(ctx context.Context, parent *mockField, rt reflec
 	if mf.isPtr { //init struct ptr
 		mf.mf = m.mockFactory[makeStruct]
 	}
-	m.contactName(mf, rt.Name())
+	m.contactAlias(mf, rt.Name())
 	err := m.parseStruct(ctx, mf, rt)
 	if err == nil {
 		parent.children = append(parent.children, mf)
@@ -284,11 +291,18 @@ func (m *Mock) parseSliceTag(ctx context.Context, mf *mockField) error {
 	if mf.tags.Key(MockSkip).Exists() {
 		return nil
 	}
-	mf.mf = m.mockFactory[makeSlice]
+	if mf.tags.Key(MockKey).Exists() {
+		if err := m.genMockFunc(mf); err != nil {
+			return err
+		}
+	} else {
+		mf.mf = m.mockFactory[makeSlice]
+	}
 	//for slice element
 	if !mf.tags.Key(MockInto).Exists() {
 		return nil
 	}
+
 	rt, _ := m.Indirect(mf.rt.Elem())
 	switch rt.Kind() {
 	case reflect.Struct:
@@ -304,7 +318,11 @@ func (m *Mock) parseStructTag(ctx context.Context, mf *mockField) error {
 	if mf.tags.Key(MockSkip).Exists() {
 		return nil
 	}
-	if mf.isPtr { //init struct ptr
+	if mf.tags.Key(MockKey).Exists() {
+		if err := m.genMockFunc(mf); err != nil {
+			return err
+		}
+	} else if mf.isPtr { //init struct ptr
 		mf.mf = m.mockFactory[makeStruct]
 	}
 	//for struct element

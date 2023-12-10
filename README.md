@@ -96,20 +96,22 @@ You will get the following:
 {"id":5,"ids":[33,25],"name":"X5K8LD3F","age":49,"hobby":{"id":5,"ht":1,"name":"8fzH9yJQ","pros":["5XDTkS","mQLJ","G9T0"]},"hobbies":[{"id":5,"ht":2,"name":"q97NuPswO0I6VZ","pros":["MGbx","ZEi7L4","xOwM67","zpl","LYzBo0"]}],"decimal":0.159,"mobile_phone":"18909537318","email":"08A7z7PMZS@hotmail.com","address":"天津市 西青区","create_time":1699695881544,"update_time":"2023-11-11 17:44:41","reg_decimal":727.5378,"reg_name":"泗傻貕贵耎鎦鶓櫫"}
 ```
 Of course, you can customize the mock method what you need
+
 ```go
 package main
 
 import (
-	. "github.com/pigfu/gomock"
 	"encoding/json"
 	"errors"
 	"fmt"
+	. "github.com/pigfu/gomock"
 	"reflect"
 )
 
 type Hobby struct {
-	Name string `json:"name" mock:"key=chinese,chinese_tag=李明"`
-	Nickname string `json:"nickname" mock:"key=chinese"`
+	Name     string  `json:"name" mock:"key=chinese,chinese_tag=李明"`
+	Nickname string  `json:"nickname" mock:"key=chinese"`
+	Ids      []int64 `json:"ids" mock:"key=ids"`
 }
 
 func main() {
@@ -132,6 +134,18 @@ func main() {
 			StrVal: value,
 		}, nil
 	})
+
+	mock.RegisterMock("ids", func(fl FieldLevel) (reflect.Value, error) {
+		if fl.GetKind() != reflect.Slice {
+			return reflect.Value{}, errors.New("only support the type slice")
+		}
+		ids := []int64{101, 201, 301, 999}
+		if fl.IsPtr() {
+			return reflect.ValueOf(&ids), nil
+		}
+		return reflect.ValueOf(ids), nil
+	})
+
 	hobby := &Hobby{}
 	err := mock.Struct(hobby)
 	if err != nil {
@@ -141,9 +155,10 @@ func main() {
 	b, _ := json.Marshal(hobby)
 	fmt.Println("success: ", string(b))
 }
+
 ```
 You will get the following:
 ```json
-{"name":"李明","nickname":"你好世界！！！"}
+{"name":"李明","nickname":"你好世界！！！","ids":[101,201,301,999]}
 ```
 
