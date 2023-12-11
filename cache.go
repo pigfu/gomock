@@ -239,7 +239,7 @@ func (m *Mock) parseIntoStruct(ctx context.Context, parent *mockField, rt reflec
 		mf.mf = m.mockFactory[makeStruct]
 	}
 	m.contactAlias(mf, rt.Name())
-	err := m.parseStruct(ctx, mf, rt)
+	err := m.parseStructTag(ctx, mf)
 	if err == nil {
 		parent.children = append(parent.children, mf)
 	}
