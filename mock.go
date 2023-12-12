@@ -95,7 +95,7 @@ func (m *Mock) mockStructValue(ctx context.Context, val reflect.Value, fl FieldL
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	err = m.mockValue(val, fl)
+	err = m.mockValue(ctx, val, fl)
 	if err != nil {
 		return
 	}
@@ -109,7 +109,7 @@ func (m *Mock) mockStructValue(ctx context.Context, val reflect.Value, fl FieldL
 		case reflect.Struct:
 			err = m.mockStructValue(ctx, val.Field(field.GetIndex()), field)
 		default:
-			err = m.mockValue(val.Field(field.GetIndex()), field)
+			err = m.mockValue(ctx, val.Field(field.GetIndex()), field)
 		}
 		if err != nil {
 			return
@@ -118,7 +118,7 @@ func (m *Mock) mockStructValue(ctx context.Context, val reflect.Value, fl FieldL
 	return
 }
 func (m *Mock) mockSliceValue(ctx context.Context, val reflect.Value, fl FieldLevel) (err error) {
-	err = m.mockValue(val, fl)
+	err = m.mockValue(ctx, val, fl)
 	if err != nil {
 		return
 	}
@@ -131,7 +131,7 @@ func (m *Mock) mockSliceValue(ctx context.Context, val reflect.Value, fl FieldLe
 		if rt.Kind() == reflect.Struct {
 			err = m.mockStructValue(ctx, val.Index(i), fl.GetChildren()[0])
 		} else {
-			err = m.mockValue(val.Index(i), fl.GetChildren()[0])
+			err = m.mockValue(ctx, val.Index(i), fl.GetChildren()[0])
 		}
 		if err != nil {
 			return
@@ -140,7 +140,7 @@ func (m *Mock) mockSliceValue(ctx context.Context, val reflect.Value, fl FieldLe
 	return
 }
 
-func (m *Mock) mockValue(val reflect.Value, fl FieldLevel) (err error) {
+func (m *Mock) mockValue(ctx context.Context, val reflect.Value, fl FieldLevel) (err error) {
 	if fl.GetMockFunc() == nil {
 		return
 	}
@@ -152,7 +152,7 @@ func (m *Mock) mockValue(val reflect.Value, fl FieldLevel) (err error) {
 		err = fmt.Errorf("field:%s,err:%v", fl.GetAlias(), e)
 	}()
 	var rv reflect.Value
-	rv, err = fl.GetMockFunc()(fl)
+	rv, err = fl.GetMockFunc()(ctx, fl)
 	if err != nil {
 		return
 	}

@@ -1,6 +1,7 @@
 package gomock
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -46,7 +47,7 @@ type Man struct {
 
 func TestMock(t *testing.T) {
 	mock := New()
-	mock.RegisterMock("chinese", func(fl FieldLevel) (reflect.Value, error) {
+	mock.RegisterMock("chinese", func(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 		if fl.GetKind() != reflect.String {
 			return reflect.New(fl.GetType()), errors.New("only support the type string")
 		}
@@ -65,7 +66,7 @@ func TestMock(t *testing.T) {
 		}, nil
 	})
 
-	mock.RegisterMock("book", func(fl FieldLevel) (reflect.Value, error) {
+	mock.RegisterMock("book", func(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 		if fl.GetKind() != reflect.Struct {
 			return reflect.New(fl.GetType()), errors.New("only support the type struct")
 		}
@@ -76,7 +77,7 @@ func TestMock(t *testing.T) {
 		return reflect.ValueOf(book), nil
 	})
 
-	mock.RegisterMock("ids", func(fl FieldLevel) (reflect.Value, error) {
+	mock.RegisterMock("ids", func(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 		if fl.GetKind() != reflect.Slice {
 			return reflect.Value{}, errors.New("only support the type slice")
 		}
@@ -93,5 +94,33 @@ func TestMock(t *testing.T) {
 		t.Error(err)
 	}
 	b, _ := json.Marshal(man)
+	t.Logf("success: %s", string(b))
+}
+
+type Human struct {
+	Books []Book `json:"books,omitempty" mock:"eq=1,into=1,key=book"`
+}
+
+func TestMockContext(t *testing.T) {
+	mockCtx := context.WithValue(context.Background(), "book", Hobby{Id: 555, Name: "test book"})
+	mock := New()
+	mock.RegisterMock("book", func(ctx context.Context, fl FieldLevel) (reflect.Value, error) {
+		if fl.GetKind() != reflect.Struct {
+			return reflect.Value{}, errors.New("only support the type struct")
+		}
+		book, _ := ctx.Value("book").(Book)
+		if fl.IsPtr() {
+			return reflect.ValueOf(&book), nil
+		}
+		return reflect.ValueOf(book), nil
+	})
+
+	human := &Human{}
+	err := mock.StructCtx(mockCtx, human)
+	if err != nil {
+		t.Error(err)
+	}
+
+	b, _ := json.Marshal(human)
 	t.Logf("success: %s", string(b))
 }

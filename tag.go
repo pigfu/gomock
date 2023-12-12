@@ -131,7 +131,7 @@ const (
 	MockOptions = "options"
 	MockWeights = "weights"
 	MockInto    = "into"
-	MockSkip    = "-"
+	MockSkip    = "skip"
 	MockAddress = "addr"
 	MockTime    = "time"
 	MockRegExp  = "reg"

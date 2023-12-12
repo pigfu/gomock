@@ -1,6 +1,7 @@
 package gomock
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/pigfu/gomock/regen"
@@ -47,10 +48,10 @@ var (
 	}
 )
 
-type MockFunc func(FieldLevel) (reflect.Value, error)
+type MockFunc func(context.Context, FieldLevel) (reflect.Value, error)
 
 // make slice
-func mockSlice(fl FieldLevel) (reflect.Value, error) {
+func mockSlice(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 	rt, tm := fl.GetType(), fl.GetTags()
 	eq := tm.Key(MockEqual).GetInt()
 	if eq > 0 {
@@ -71,12 +72,12 @@ func mockSlice(fl FieldLevel) (reflect.Value, error) {
 }
 
 // make struct
-func mockStruct(fl FieldLevel) (reflect.Value, error) {
+func mockStruct(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 	return reflect.New(fl.GetType()), nil
 }
 
 // mock random string
-func mockString(fl FieldLevel) (reflect.Value, error) {
+func mockString(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 	if fl.GetKind() != reflect.String {
 		return reflect.New(fl.GetType()), errors.New("only support the type string")
 	}
@@ -127,7 +128,7 @@ func rangeString(fl FieldLevel) string {
 }
 
 // mock integer. for int,int8,int64...
-func mockInteger(fl FieldLevel) (reflect.Value, error) {
+func mockInteger(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 	val, err := generateInteger(fl)
 	if err != nil {
 		return reflect.Value{}, err
@@ -317,7 +318,7 @@ func sumWeights(weights []int64, number int) int64 {
 }
 
 // mock decimal. for float32,float64
-func mockDecimal(fl FieldLevel) (reflect.Value, error) {
+func mockDecimal(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 	val, err := generateDecimal(fl)
 	if err != nil {
 		return reflect.Value{}, err
@@ -391,7 +392,7 @@ func numberOfDecimal(value string) float64 {
 }
 
 // make mobile phone
-func mockMobilePhone(fl FieldLevel) (reflect.Value, error) {
+func mockMobilePhone(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 	if fl.GetKind() != reflect.String {
 		return reflect.New(fl.GetType()), errors.New("only support the type string")
 	}
@@ -408,7 +409,7 @@ func mockMobilePhone(fl FieldLevel) (reflect.Value, error) {
 	}
 	return reflect.ValueOf(phoneStr), nil
 }
-func mockEmail(fl FieldLevel) (reflect.Value, error) {
+func mockEmail(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 	if fl.GetKind() != reflect.String {
 		return reflect.New(fl.GetType()), errors.New("only support the type string")
 	}
@@ -427,7 +428,7 @@ func mockEmail(fl FieldLevel) (reflect.Value, error) {
 	return reflect.ValueOf(emailStr), nil
 }
 
-func mockAddress(fl FieldLevel) (reflect.Value, error) {
+func mockAddress(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 	if fl.GetKind() != reflect.String {
 		return reflect.New(fl.GetType()), errors.New("only support the type string")
 	}
@@ -480,7 +481,7 @@ func randCountry(countryMap map[string]struct{}) string {
 	return countries[rand.Int63()%int64(len(countries))]
 }
 
-func mockTime(fl FieldLevel) (reflect.Value, error) {
+func mockTime(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 	if !fl.GetTags().Key(MockTime).Exists() {
 		return reflect.New(fl.GetType()), nil
 	}

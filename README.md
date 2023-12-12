@@ -101,6 +101,7 @@ Of course, you can customize the mock method what you need
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -116,7 +117,7 @@ type Hobby struct {
 
 func main() {
 	mock := New()
-	mock.RegisterMock("chinese", func(fl FieldLevel) (reflect.Value, error) {
+	mock.RegisterMock("chinese", func(_ context.Context, fl FieldLevel) (reflect.Value, error) {
 		if fl.GetKind() != reflect.String {
 			return reflect.New(fl.GetType()), errors.New("only support the type string")
 		}
@@ -135,11 +136,11 @@ func main() {
 		}, nil
 	})
 
-	mock.RegisterMock("ids", func(fl FieldLevel) (reflect.Value, error) {
+	mock.RegisterMock("ids", func(ctx context.Context, fl FieldLevel) (reflect.Value, error) {
 		if fl.GetKind() != reflect.Slice {
 			return reflect.Value{}, errors.New("only support the type slice")
 		}
-		ids := []int64{101, 201, 301, 999}
+		ids, _ := ctx.Value("ids").([]int64)
 		if fl.IsPtr() {
 			return reflect.ValueOf(&ids), nil
 		}
@@ -147,7 +148,8 @@ func main() {
 	})
 
 	hobby := &Hobby{}
-	err := mock.Struct(hobby)
+	mockCtx := context.WithValue(context.Background(), "ids", []int64{101, 201, 301, 999})
+	err := mock.StructCtx(mockCtx, hobby)
 	if err != nil {
 		fmt.Println(err)
 		return

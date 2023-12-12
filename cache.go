@@ -230,6 +230,9 @@ func (m *Mock) parseIntoStruct(ctx context.Context, parent *mockField, rt reflec
 		tempTags: parent.intoTags,
 		name:     rt.Name(),
 	}
+	if len(mf.tempTags) == 0 {
+		mf.tempTags = append(mf.tempTags, "into=1")
+	}
 	mf.rt, mf.isPtr = m.Indirect(rt)
 	mf.rk = mf.rt.Kind()
 	if _, ok := notSupportTypes[mf.rk]; ok {
